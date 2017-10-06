@@ -3,8 +3,6 @@ defmodule Gollum.Parser do
   Parses a robots.txt file.
   """
 
-  alias Gollum.Rules
-
   @doc """
   Parse the file, passed in as a simple binary. It follows the [spec defined
   by Google](https://developers.google.com/search/reference/robots_txt).
@@ -13,7 +11,7 @@ defmodule Gollum.Parser do
 
       iex> alias Gollum.Parser
       iex> Parser.parse("User-agent: Hello\\nAllow: /hello\\nDisallow: /hey")
-      %{"Hello" => %Gollum.Rules{allowed: ["/hello"], disallowed: ["/hey"]}}
+      %{"Hello" => %{allowed: ["/hello"], disallowed: ["/hey"]}}
   """
   @spec parse(binary) :: %{binary => Gollum.Rules.t}
   def parse(string) do
@@ -54,13 +52,13 @@ defmodule Gollum.Parser do
   end
   # Add an allowed field
   defp do_parse([{:allow, path} | tokens], {agents, rules}, accum) do
-    rules = rules || %Rules{}
-    do_parse(tokens, {agents, %Rules{rules | allowed: [path | rules.allowed]}}, accum)
+    rules = Map.put(rules || %{}, :allowed, [path | rules[:allowed] || []])
+    do_parse(tokens, {agents, rules}, accum)
   end
   # Add a disallowed field
   defp do_parse([{:disallow, path} | tokens], {agents, rules}, accum) do
-    rules = rules || %Rules{}
-    do_parse(tokens, {agents, %Rules{rules | disallowed: [path | rules.disallowed]}}, accum)
+    rules = Map.put(rules || %{}, :disallowed, [path | rules[:disallowed] || []])
+    do_parse(tokens, {agents, rules}, accum)
   end
   # End the parsing, current buffer has nothing, so just return the accumulator
   defp do_parse([], {_agents, nil}, accum) do
