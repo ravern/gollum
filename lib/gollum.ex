@@ -9,9 +9,11 @@ defmodule Gollum do
   synchronously.
   """
   @spec prefetch(binary | URI.t, keyword) :: :ok | {:error, term}
-  def prefetch(host, opts \\ [])
-  def prefetch(%URI{host: host}, opts), do: prefetch(host, opts)
-  def prefetch(host, opts) when is_binary(host) do
+  def prefetch(domain, opts \\ [])
+  def prefetch(%URI{scheme: scheme, host: host}, opts) do
+    prefetch(scheme <> host, opts)
+  end
+  def prefetch(domain, opts) when is_binary(domain) do
     name = opts[:name] || Gollum
   end
 end

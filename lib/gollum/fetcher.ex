@@ -2,7 +2,7 @@ defmodule Gollum.Fetcher do
   @moduledoc false
 
   # Fetch from specified host.
-  def fetch(host, opts) do
+  def fetch(domain, opts) do
     headers = [
       {"User-Agent", opts[:user_agent]},
     ]
@@ -13,7 +13,7 @@ defmodule Gollum.Fetcher do
     opts = Keyword.merge(opts, other_opts)
 
     # Make the request via HTTPoison and return the ok | error tuple
-    case HTTPoison.get("#{host}/robots.txt", headers, opts) do
+    case HTTPoison.get("#{domain}/robots.txt", headers, opts) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         {:ok, body}
       {:ok, _response} ->
