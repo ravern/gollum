@@ -5,10 +5,10 @@ defmodule Gollum.HostTest do
 
   test "which_agent/2" do
     agents = ~w(googlebot-news * googlebot)
-    assert Host.which_agent("Googlebot-News", agents) == "googlebot-news"
-    assert Host.which_agent("Googlebot", agents) == "googlebot"
-    assert Host.which_agent("Googlebot-Image", agents) == "googlebot"
-    assert Host.which_agent("Otherbot", agents) == "*"
+    assert Host.which_agent(agents, "Googlebot-News") == "googlebot-news"
+    assert Host.which_agent(agents, "Googlebot") == "googlebot"
+    assert Host.which_agent(agents, "Googlebot-Image") == "googlebot"
+    assert Host.which_agent(agents, "Otherbot") == "*"
   end
 
   test "match_agent?/2" do

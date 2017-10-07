@@ -11,7 +11,7 @@ defmodule Gollum.Parser do
 
       iex> alias Gollum.Parser
       iex> Parser.parse("User-agent: Hello\\nAllow: /hello\\nDisallow: /hey")
-      %{"Hello" => %{allowed: ["/hello"], disallowed: ["/hey"]}}
+      %{"hello" => %{allowed: ["/hello"], disallowed: ["/hey"]}}
   """
   @spec parse(binary) :: %{binary => Gollum.Rules.t}
   def parse(string) do
@@ -30,8 +30,8 @@ defmodule Gollum.Parser do
   # Tokenize a single line of the robots.txt.
   defp tokenize(line) do
     cond do
-      result = Regex.run(~r/^allow:?\s(.+)$/i,      line) -> {:allow, Enum.at(result, 1)}
-      result = Regex.run(~r/^disallow:?\s(.+)$/i,   line) -> {:disallow, Enum.at(result, 1)}
+      result = Regex.run(~r/^allow:?\s(.+)$/i,      line) -> {:allow,      Enum.at(result, 1)}
+      result = Regex.run(~r/^disallow:?\s(.+)$/i,   line) -> {:disallow,   Enum.at(result, 1)}
       result = Regex.run(~r/^user-agent:?\s(.+)$/i, line) -> {:user_agent, Enum.at(result, 1)}
       true -> :unknown
     end
@@ -41,9 +41,9 @@ defmodule Gollum.Parser do
   # 1. List of tokens remaining
   # 2. Tuple of {[user_agents], rules_accum} as the buffer
   # 3. Accumulator
-  # Haven't started parsing rules, add to list of agents
+  # Haven't started parsing rules, add to list of agents (downcase when adding)
   defp do_parse([{:user_agent, agent} | tokens], {agents, nil}, accum) do
-    do_parse(tokens, {[agent | agents], nil}, accum)
+    do_parse(tokens, {[String.downcase(agent) | agents], nil}, accum)
   end
   # Finished parsing a set of rules, add rules to accum and reset rules to nil
   defp do_parse([{:user_agent, agent} | tokens], {agents, rules}, accum) do
