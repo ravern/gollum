@@ -1,7 +1,13 @@
 defmodule Gollum.Fetcher do
-  @moduledoc false
+  @moduledoc """
+  In charge of fetching the actual robots.txt files.
+  """
 
-  # Fetch from specified host.
+  @doc """
+  Fetches the robots.txt file from the specified host. Simply performs
+  a `GET` request to the domain via `HTTPoison`.
+  """
+  @spec fetch(binary, keyword) :: {:ok, binary} | {:error, term}
   def fetch(domain, opts) do
     headers = [
       {"User-Agent", opts[:user_agent]},

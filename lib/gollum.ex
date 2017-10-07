@@ -1,19 +1,11 @@
 defmodule Gollum do
   @moduledoc """
   Robots.txt parser with caching. Modelled after Kryten (unmaintained library).
-  """
 
-  @doc """
-  Pre-fetches the data from a host and stores it in the cache. This is useful if
-  you know which hosts you need to request beforehand. By default, this executes
-  synchronously.
+  There are 2 main ways to use Gollum. The first is to just use Gollum as a robots.txt
+  fetching and parsing library. The second is to use it's caching mechanism to optimize
+  your workflow.
+
+  Using Gollum as just the fetcher and parser (or even just the parser):
   """
-  @spec prefetch(binary | URI.t, keyword) :: :ok | {:error, term}
-  def prefetch(domain, opts \\ [])
-  def prefetch(%URI{scheme: scheme, host: host}, opts) do
-    prefetch(scheme <> host, opts)
-  end
-  def prefetch(domain, opts) when is_binary(domain) do
-    name = opts[:name] || Gollum
-  end
 end

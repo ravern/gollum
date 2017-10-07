@@ -13,10 +13,12 @@ defmodule Gollum.Host do
   The rules usually are the output of the parser.
 
   ## Examples
-      iex> alias Gollum.Host
-      iex> rules = %{"Hello" => %{allowed: [], disallowed: []}}
-      iex> Host.new("hello.net", rules)
-      %Gollum.Host{host: "hello.net", rules: %{"Hello" => %{allowed: [], disallowed: []}}}
+  ```
+  iex> alias Gollum.Host
+  iex> rules = %{"Hello" => %{allowed: [], disallowed: []}}
+  iex> Host.new("hello.net", rules)
+  %Gollum.Host{host: "hello.net", rules: %{"Hello" => %{allowed: [], disallowed: []}}}
+  ```
   """
   @spec new(binary, map) :: Gollum.Host.t
   def new(host, rules) do
@@ -31,29 +33,30 @@ defmodule Gollum.Host do
   found [here](https://developers.google.com/search/reference/robots_txt).
 
   ## Examples
-
-      iex> alias Gollum.Host
-      iex> rules = %{
-      ...>   "hello" => %{
-      ...>     allowed: ["/p"],
-      ...>     disallowed: ["/"],
-      ...>   },
-      ...>   "otherhello" => %{
-      ...>     allowed: ["/$"],
-      ...>     disallowed: ["/"],
-      ...>   },
-      ...>   "*" => %{
-      ...>     allowed: ["/page"],
-      ...>     disallowed: ["/*.htm"],
-      ...>   },
-      ...> }
-      iex> host = Host.new("hello.net", rules)
-      iex> Host.crawlable?(host, "Hello", "/page")
-      :crawlable
-      iex> Host.crawlable?(host, "OtherHello", "/page.htm")
-      :uncrawlable
-      iex> Host.crawlable?(host, "NotHello", "/page.htm")
-      :undefined
+  ```
+  iex> alias Gollum.Host
+  iex> rules = %{
+  ...>   "hello" => %{
+  ...>     allowed: ["/p"],
+  ...>     disallowed: ["/"],
+  ...>   },
+  ...>   "otherhello" => %{
+  ...>     allowed: ["/$"],
+  ...>     disallowed: ["/"],
+  ...>   },
+  ...>   "*" => %{
+  ...>     allowed: ["/page"],
+  ...>     disallowed: ["/*.htm"],
+  ...>   },
+  ...> }
+  iex> host = Host.new("hello.net", rules)
+  iex> Host.crawlable?(host, "Hello", "/page")
+  :crawlable
+  iex> Host.crawlable?(host, "OtherHello", "/page.htm")
+  :uncrawlable
+  iex> Host.crawlable?(host, "NotHello", "/page.htm")
+  :undefined
+  ```
   """
   @spec crawlable?(Gollum.Host.t, binary, binary) :: :crawlable | :uncrawlable | :undefined
   def crawlable?(%Gollum.Host{rules: rules}, user_agent, path) do

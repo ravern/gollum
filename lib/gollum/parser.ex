@@ -8,10 +8,11 @@ defmodule Gollum.Parser do
   by Google](https://developers.google.com/search/reference/robots_txt).
 
   ## Examples
-
-      iex> alias Gollum.Parser
-      iex> Parser.parse("User-agent: Hello\\nAllow: /hello\\nDisallow: /hey")
-      %{"hello" => %{allowed: ["/hello"], disallowed: ["/hey"]}}
+  ```
+  iex> alias Gollum.Parser
+  iex> Parser.parse("User-agent: Hello\\nAllow: /hello\\nDisallow: /hey")
+  %{"hello" => %{allowed: ["/hello"], disallowed: ["/hey"]}}
+  ```
   """
   @spec parse(binary) :: %{binary => Gollum.Rules.t}
   def parse(string) do
