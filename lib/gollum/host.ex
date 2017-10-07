@@ -8,10 +8,6 @@ defmodule Gollum.Host do
   @enforce_keys [:host, :rules]
   defstruct host: "", rules: %{}
 
-  @doc false
-  def lol do
-  end
-
   @doc """
   Creates a new `Gollum.Host` struct, passing in the host and rules.
   The rules usually are the output of the parser.
