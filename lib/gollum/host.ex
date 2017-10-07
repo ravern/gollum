@@ -17,7 +17,6 @@ defmodule Gollum.Host do
   The rules usually are the output of the parser.
 
   ## Examples
-
       iex> alias Gollum.Host
       iex> rules = %{"Hello" => %{allowed: [], disallowed: []}}
       iex> Host.new("hello.net", rules)
@@ -82,4 +81,44 @@ defmodule Gollum.Host do
   def match_agent?(lhs, rhs) do
     String.starts_with?(lhs, rhs) || rhs == "*"
   end
+
+  @doc false
+  # Returns whether the path on the left matches the path on the right. The
+  # path on the right can contain wildcards and other special characters.
+  # Assumes valid input.
+  def match_path?(lhs, rhs) do
+    rhs = String.split(rhs, "*")
+    do_match_path(lhs, rhs)
+  end
+
+  # Does the actual path matching
+  defp do_match_path(_, []), do: true
+  defp do_match_path("", _), do: false
+  defp do_match_path(lhs, [group | rest]) do
+    case do_match_group(lhs, group) do
+      {:ok, remaining} -> do_match_path(remaining, rest)
+      :error -> false
+    end
+  end
+
+  # Matches the left hand side chars to the right hand side chars
+  # Recognises the "$" sign. Assumes valid input.
+  # e.g. {:ok, "llo"} = do_match_group("hello", "he")
+  # e.g. {:ok, "llo"} = do_match_group("yohello", "helloo")
+  # e.g. :error = do_match_group("hello", "helloo")
+  # e.g. :error = do_match_group("hello", "he$")
+  defp do_match_group("", ""), do:
+    {:ok, ""}
+  defp do_match_group("", "$" <> _rhs), do:
+    {:ok, ""}
+  defp do_match_group(_lhs, "$" <> _rhs), do:
+    :error
+  defp do_match_group("", _rhs), do:
+    :error
+  defp do_match_group(lhs, ""), do:
+    {:ok, lhs}
+  defp do_match_group(<<ch::utf8, lhs::binary>>, <<ch::utf8, rhs::binary>>), do:
+    do_match_group(lhs, rhs)
+  defp do_match_group(<<_ch::utf8, lhs::binary>>, rhs), do:
+    do_match_group(lhs, rhs)
 end
