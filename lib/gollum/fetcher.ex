@@ -10,7 +10,7 @@ defmodule Gollum.Fetcher do
   @spec fetch(binary, keyword) :: {:ok, binary} | {:error, term}
   def fetch(domain, opts) do
     headers = [
-      {"User-Agent", opts[:user_agent]},
+      {"User-Agent", opts[:user_agent] || "Gollum"},
     ]
     other_opts = [
       follow_redirect: true,

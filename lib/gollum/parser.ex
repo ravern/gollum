@@ -14,7 +14,7 @@ defmodule Gollum.Parser do
   %{"hello" => %{allowed: ["/hello"], disallowed: ["/hey"]}}
   ```
   """
-  @spec parse(binary) :: %{binary => Gollum.Rules.t}
+  @spec parse(binary) :: map
   def parse(string) do
     tokens =
       string

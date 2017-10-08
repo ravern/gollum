@@ -7,12 +7,17 @@ defmodule Gollum.Cache do
   """
 
   use GenServer
-
-  # State contained in GenServer:
-  # Tuple of 3 items
-  # 1. data:    %{host => %Host{}}
+  alias Gollum.{Fetcher, Parser, Host} # State contained in GenServer: Tuple of 3 items
+  # 1. data:    %{host => {%Host{}, last_fetch_secs}}
   # 2. pending: %{host => [from_list]}
   # 3. options
+
+  # Default values for options
+  @name         Gollum.Cache
+  @refresh_secs 86_400
+  @lazy_refresh false
+  @async        false
+  @force        false
 
   @doc """
   Starts up the cache.
@@ -28,7 +33,11 @@ defmodule Gollum.Cache do
       refetched from the host if needed. Otherwise, the file will be
       refreshed at the interval specified by `refresh_secs`. Defaults to
       `false`.
+
+    * `user_agent` - The user agent to use when performing the GET request. Default
+      is `"Gollum"`.
   """
+  @spec start_link(keyword) :: {:ok, pid} | {:error, term}
   def start_link(opts \\ []) do
     name = opts[:name] || Gollum.Cache
     GenServer.start_link(__MODULE__, {%{}, %{}, opts}, name: name)
@@ -52,8 +61,8 @@ defmodule Gollum.Cache do
   """
   @spec fetch(binary, keyword) :: :ok | {:error, term}
   def fetch(host, opts \\ []) when is_binary(host) do
-    name  = opts[:name] || Gollum.Catch
-    async = opts[:async] || false
+    name  = opts[:name] || @name
+    async = opts[:async] || @async
 
     # Cast if async, else call
     if async do
@@ -65,6 +74,104 @@ defmodule Gollum.Cache do
   end
 
   @doc false
-  def handle_call({:fetch, host, opts}, {store, pending, opts_2}) do
+  def handle_info({:fetched, host, {:ok, body}}, {store, pending, opts}) do
+    rules = Parser.parse(body)
+    host_struct = Host.new(host, rules)
+    cur_time = :erlang.system_time(:seconds)
+
+    # Reply :ok to all waiting processes
+    Enum.each(pending[host], &GenServer.reply(&1, :ok))
+
+    new_pending = Map.delete(pending, host)
+    new_store = Map.put(store, host, {host_struct, cur_time})
+    {:noreply, {new_store, new_pending, opts}}
+  end
+  def handle_info({:fetched, host, {:error, reason}}, {store, pending, opts}) do
+    # Reply :error to all waiting processes
+    Enum.each(pending[host], &GenServer.reply(&1, {:error, reason}))
+    new_pending = Map.delete(pending, host)
+    {:noreply, {store, new_pending, opts}}
+  end
+  def handle_info({:refresh, host}, {store, pending, opts}) do
+    GenServer.cast(self(), {:fetch, host, from_refresh: true, async: true})
+    Process.send_after(self(), {:refresh, host}, opts[:refresh_secs] * 1_000)
+    {:noreply, {store, pending, opts}}
+  end
+
+  @doc false
+  def handle_call(:get, _from, state), do: {:reply, state, state}
+  def handle_call({:fetch, host, fetch_opts}, from, {store, pending, opts}) do
+    case pending[host] do
+      nil   -> do_possible_fetch({host, [{:from, from} | fetch_opts]}, {store, pending, opts})
+      froms -> {:noreply, {store, %{pending | host => [from | froms]}, opts}}
+    end
+  end
+
+  @doc false
+  def handle_cast({:fetch, host, fetch_opts}, {store, pending, opts}) do
+    case pending[host] do
+      nil    -> do_possible_fetch({host, fetch_opts}, {store, pending, opts})
+      _froms -> {:noreply, {store, pending, opts}}
+    end
+  end
+
+  # Performs the fetch after checking the criteria.
+  defp do_possible_fetch({host, fetch_opts}, {store, pending, opts}) do
+    cur_time = :erlang.system_time(:seconds)
+    with {:force, false}          <- {:force, fetch_opts[:force] || @force},
+         {:exists, {_data, time}} <- {:exists, store[host]},
+         {:lazy_refresh, true}   <- {:lazy_refresh, opts[:lazy_refresh] || @lazy_refresh},
+         refresh_secs             = opts[:refresh_secs] || @refresh_secs,
+         {:refresh_secs, true}    <- {:refresh_secs, cur_time - time > refresh_secs}
+    do
+      do_fetch({host, fetch_opts}, {store, pending, opts})
+    else
+      {:force, true} -> do_fetch({host, fetch_opts}, {store, pending, opts})
+      {:exists, nil} -> do_fetch({host, fetch_opts}, {store, pending, opts})
+      {:refresh_secs, false} -> reply_if_sync(fetch_opts, {store, pending, opts})
+      {:lazy_refresh, false} ->
+        from_refresh = fetch_opts[:from_refresh] || false
+        if from_refresh do
+          do_fetch({host, fetch_opts}, {store, pending, opts})
+        else
+          reply_if_sync(fetch_opts, {store, pending, opts})
+        end
+    end
+  end
+
+  # Checks for async and replies appropriately.
+  defp reply_if_sync(fetch_opts, state) do
+    if fetch_opts[:async] do
+      {:noreply, state}
+    else
+      {:reply, :ok, state}
+    end
+  end
+
+  # Performs the actual fetch
+  defp do_fetch({host, fetch_opts}, {store, pending, opts}) do
+    new_pending =
+      if fetch_opts[:async] do
+        Map.put(pending, host, [])
+      else
+        Map.put(pending, host, [fetch_opts[:from]])
+      end
+
+    # Spawn a background process the fetch so it doesn't block the GenServer
+    pid = self()
+    spawn(fn->
+      response = Fetcher.fetch(host, Keyword.merge(fetch_opts, opts))
+      send(pid, {:fetched, host, response})
+    end)
+
+    # Start the non-lazy refresh cycle if opts says so
+    from_refresh = fetch_opts[:from_refresh] || false
+    lazy_refresh = opts[:lazy_refresh]       || @lazy_refresh
+    refresh_secs = opts[:refresh_secs]       || @refresh_secs
+    if !from_refresh && !lazy_refresh do
+      Process.send_after(self(), {:refresh, host}, refresh_secs * 1_000)
+    end
+
+    {:noreply, {store, new_pending, opts}}
   end
 end
