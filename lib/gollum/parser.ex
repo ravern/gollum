@@ -4,8 +4,10 @@ defmodule Gollum.Parser do
   """
 
   @doc """
-  Parse the file, passed in as a simple binary. It follows the [spec defined
-  by Google](https://developers.google.com/search/reference/robots_txt).
+  Parse the file, passed in as a simple binary.
+
+  It follows the [spec defined by Google](https://developers.google.com/search/reference/robots_txt)
+  as closely as possible.
 
   ## Examples
   ```

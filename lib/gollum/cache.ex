@@ -2,8 +2,9 @@ defmodule Gollum.Cache do
   @moduledoc """
   Caches the robots.txt files from different hosts in memory.
 
-  Add this module to your supervision tree. Call this module to perform
-  pre-fetches, and makes sure the requests don't get repeated.
+  Add this module to your supervision tree. Use this module to perform
+  fetches of the robots.txt and automatic caching of results. It also
+  makes sure the two identical requests don't happen at the same time.
   """
 
   use GenServer
@@ -44,10 +45,12 @@ defmodule Gollum.Cache do
   end
 
   @doc """
-  Fetches the robots.txt from a host and stores it in the cache. It will only perform
-  the HTTP request if there isn't any current data in the cache, the data is too old
-  (specified in the `refresh_secs` option in `start_link/2`) or when the `force` flag
-  is set. This function is useful if you know which hosts you need to request beforehand.
+  Fetches the robots.txt from a host and stores it in the cache.
+
+  It will only perform the HTTP request if there isn't any current data in the cache, the
+  data is too old (specified in the `refresh_secs` option in `start_link/2`) or when the
+  `force` flag is set. This function is useful if you know which hosts you need to request
+  beforehand.
 
   ## Options
 
@@ -99,7 +102,6 @@ defmodule Gollum.Cache do
   end
 
   @doc false
-  def handle_call(:get, _from, state), do: {:reply, state, state}
   def handle_call({:fetch, host, fetch_opts}, from, {store, pending, opts}) do
     case pending[host] do
       nil   -> do_possible_fetch({host, [{:from, from} | fetch_opts]}, {store, pending, opts})
