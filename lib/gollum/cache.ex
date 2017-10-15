@@ -8,7 +8,8 @@ defmodule Gollum.Cache do
   """
 
   use GenServer
-  alias Gollum.{Fetcher, Parser, Host} # State contained in GenServer: Tuple of 3 items
+  alias Gollum.{Fetcher, Parser, Host}
+  # State contained in GenServer: Tuple of 3 items
   # 1. data:    %{host => {%Host{}, last_fetch_secs}}
   # 2. pending: %{host => [from_list]}
   # 3. options
@@ -122,7 +123,7 @@ defmodule Gollum.Cache do
     cur_time = :erlang.system_time(:seconds)
     with {:force, false}          <- {:force, fetch_opts[:force] || @force},
          {:exists, {_data, time}} <- {:exists, store[host]},
-         {:lazy_refresh, true}   <- {:lazy_refresh, opts[:lazy_refresh] || @lazy_refresh},
+         {:lazy_refresh, true}    <- {:lazy_refresh, opts[:lazy_refresh] || @lazy_refresh},
          refresh_secs             = opts[:refresh_secs] || @refresh_secs,
          {:refresh_secs, true}    <- {:refresh_secs, cur_time - time > refresh_secs}
     do

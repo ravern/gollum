@@ -65,7 +65,7 @@ defmodule Gollum.Host do
       rules
       |> Map.keys()
       |> which_agent(user_agent)
-    
+
     # Return whether allowed
     if key do
       rules
