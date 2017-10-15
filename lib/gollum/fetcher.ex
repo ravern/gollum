@@ -8,7 +8,7 @@ defmodule Gollum.Fetcher do
   a `GET` request to the domain via `HTTPoison`.
   """
   @spec fetch(binary, keyword) :: {:ok, binary} | {:error, term}
-  def fetch(domain, opts \\ []) do
+  def fetch(domain, opts) do
     headers = [
       {"User-Agent", opts[:user_agent] || "Gollum"},
     ]

@@ -8,7 +8,7 @@ defmodule Gollum.Cache do
   """
 
   use GenServer
-  alias Gollum.{Fetcher, Parser, Host}
+  alias Gollum.{Parser, Host}
   # State contained in GenServer: Tuple of 3 items
   # 1. data:    %{host => {%Host{}, last_fetch_secs}}
   # 2. pending: %{host => [from_list]}
@@ -20,6 +20,7 @@ defmodule Gollum.Cache do
   @lazy_refresh false
   @async        false
   @force        false
+  @fetcher      Gollum.Fetcher
 
   @doc """
   Starts up the cache.
@@ -46,8 +47,7 @@ defmodule Gollum.Cache do
   end
 
   @doc """
-  Fetches the robots.txt from a host and stores it in the cache.
-
+  Fetches the robots.txt from a host and stores it in the cache.  
   It will only perform the HTTP request if there isn't any current data in the cache, the
   data is too old (specified in the `refresh_secs` option in `start_link/2`) or when the
   `force` flag is set. This function is useful if you know which hosts you need to request
@@ -75,6 +75,19 @@ defmodule Gollum.Cache do
     else
       GenServer.call(name, {:fetch, host, opts})
     end
+  end
+
+  @doc """
+  Gets the `Gollum.Host` struct for the specified host from the cache.
+
+  ## Options
+
+    * `name` - The name of the GenServer. Default value is `Gollum.Cache`.
+  """
+  @spec get(binary, keyword) :: Gollum.Host.t | nil
+  def get(host, opts \\ []) do
+    name  = opts[:name] || @name
+    GenServer.call(name, {:get, host})
   end
 
   @doc false
@@ -107,6 +120,12 @@ defmodule Gollum.Cache do
     case pending[host] do
       nil   -> do_possible_fetch({host, [{:from, from} | fetch_opts]}, {store, pending, opts})
       froms -> {:noreply, {store, %{pending | host => [from | froms]}, opts}}
+    end
+  end
+  def handle_call({:get, host}, _from, {store, _pending, _opts} = state) do
+    case store[host] do
+      nil       -> {:reply, nil, state}
+      {data, _} -> {:reply, data, state}
     end
   end
 
@@ -162,8 +181,10 @@ defmodule Gollum.Cache do
 
     # Spawn a background process the fetch so it doesn't block the GenServer
     pid = self()
+    # Get the fetcher from the env
+    fetcher = opts[:fetcher] || @fetcher
     spawn(fn->
-      response = Fetcher.fetch(host, Keyword.merge(fetch_opts, opts))
+      response = fetcher.fetch(host, Keyword.merge(fetch_opts, opts))
       send(pid, {:fetched, host, response})
     end)
 
