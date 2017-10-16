@@ -70,6 +70,7 @@ defmodule Gollum.Host do
     if key do
       rules
       |> Map.get(key)
+      |> sanitize_user_agent_map()
       |> allowed?(path)
       |> case do
         :allowed -> :crawlable
@@ -81,6 +82,11 @@ defmodule Gollum.Host do
       :undefined
     end
   end
+
+  defp sanitize_user_agent_map(nil), do: %{allowed: [], disallowed: []}
+  defp sanitize_user_agent_map(%{allowed: _, disallowed: _} = map), do: map
+  defp sanitize_user_agent_map(%{allowed: allowed}), do: %{allowed: allowed, disallowed: []}
+  defp sanitize_user_agent_map(%{disallowed: disallowed}), do: %{allowed: [], disallowed: disallowed}
 
   @doc false
   # Returns the most suitable user agent string from the specified list, based
