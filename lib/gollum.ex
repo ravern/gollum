@@ -1,6 +1,6 @@
 defmodule Gollum do
   @moduledoc """
-  Robots.txt parser with caching. Modelled after Kryten (unmaintained library).
+  Robots.txt parser with caching. Modelled after Kryten.
   """
 
   alias Gollum.{Cache, Host}
@@ -41,7 +41,7 @@ defmodule Gollum do
 
     case Cache.fetch(host, name: name) do
       {:error, _} -> true
-      :ok -> 
+      :ok ->
         host
         |> Cache.get(name: name)
         |> Host.crawlable?(user_agent, path)

@@ -8,7 +8,8 @@ defmodule Gollum.Mixfile do
       elixir: "~> 1.5",
       elixirc_paths: elixirc_paths(Mix.env),
       start_permanent: Mix.env == :prod,
-      deps: deps()
+      deps: deps(),
+      package: package(),
     ]
   end
 
@@ -26,6 +27,15 @@ defmodule Gollum.Mixfile do
     [
       {:httpoison, "~> 0.13"},
       {:ex_doc, "~> 0.17.1", only: :dev, runtime: false},
+    ]
+  end
+
+  defp package do
+    [
+      description: "Robots.txt parser with caching. Modelled after Kryten.",
+      maintainers: ["Ravern Koh"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/ravernkoh/gollum"},
     ]
   end
 end
