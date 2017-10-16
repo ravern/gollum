@@ -9,4 +9,7 @@ defmodule MockFetcher do
   def fetch("error", _opts) do
     {:error, :no_robots_file}
   end
+  def fetch("http://example.com", _opts) do
+    {:ok, "User-agent: Hello\nAllow: /hello\nDisallow: /hey"}
+  end
 end

@@ -73,7 +73,7 @@ defmodule Gollum.Cache do
       GenServer.cast(name, {:fetch, host, opts})
       :ok
     else
-      GenServer.call(name, {:fetch, host, opts})
+      GenServer.call(name, {:fetch, host, opts}, :infinity)
     end
   end
 
@@ -87,7 +87,7 @@ defmodule Gollum.Cache do
   @spec get(binary, keyword) :: Gollum.Host.t | nil
   def get(host, opts \\ []) do
     name  = opts[:name] || @name
-    GenServer.call(name, {:get, host})
+    GenServer.call(name, {:get, host}, :infinity)
   end
 
   @doc false
