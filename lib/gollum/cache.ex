@@ -32,7 +32,7 @@ defmodule Gollum.Cache do
     * `refresh_secs` - The number of seconds until the robots.txt will be
       refetched from the host. Defaults to `86_400`, which is 1 day.
 
-    * `lazy_refresh` - If this flag is set to true, the file will only be
+    * `lazy_refresh` - If this flag is set to `true`, the file will only be
       refetched from the host if needed. Otherwise, the file will be
       refreshed at the interval specified by `refresh_secs`. Defaults to
       `false`.
@@ -40,6 +40,7 @@ defmodule Gollum.Cache do
     * `user_agent` - The user agent to use when performing the GET request. Default
       is `"Gollum"`.
   """
+  # Decide not to document `fetcher` option.
   @spec start_link(keyword) :: {:ok, pid} | {:error, term}
   def start_link(opts \\ []) do
     name = opts[:name] || Gollum.Cache
