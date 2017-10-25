@@ -50,7 +50,7 @@ defmodule Gollum do
     path = uri.path || "/"
 
     case Cache.fetch(host, name: name) do
-      {:error, _} -> true
+      {:error, _} -> :crawlable
       :ok ->
         host
         |> Cache.get(name: name)
