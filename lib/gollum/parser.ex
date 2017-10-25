@@ -22,6 +22,7 @@ defmodule Gollum.Parser do
       string
       |> String.split("\n")
       |> Stream.map(&String.trim/1)
+      |> Stream.filter(&(!String.starts_with?(&1, "#")))
       |> Stream.map(&tokenize/1)
       |> Stream.filter(&(&1 != :unknown))
       |> Enum.to_list()

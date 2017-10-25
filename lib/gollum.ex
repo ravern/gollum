@@ -41,9 +41,9 @@ defmodule Gollum do
   :uncrawlable
   ```
   """
-  @spec crawlable?(binary, binary, keyword) :: boolean
+  @spec crawlable?(binary, binary, keyword) :: :crawlable | :uncrawlable | :undefined
   def crawlable?(user_agent, url, opts \\ []) do
-    name            = opts[:name]            || Gollum.Cache
+    name = opts[:name] || Gollum.Cache
 
     uri = URI.parse(url)
     host = "#{uri.scheme}://#{uri.host}"
