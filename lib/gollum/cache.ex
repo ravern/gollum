@@ -22,6 +22,10 @@ defmodule Gollum.Cache do
   @force        false
   @fetcher      Gollum.Fetcher
 
+  def init(init_arg) do
+    {:ok, init_arg}
+  end
+
   @doc """
   Starts up the cache.
 
