@@ -5,7 +5,7 @@ defmodule Gollum.Mixfile do
     [
       app: :gollum,
       version: "0.3.3",
-      elixir: "~> 1.5",
+      elixir: "~> 1.8",
       elixirc_paths: elixirc_paths(Mix.env),
       start_permanent: Mix.env == :prod,
       deps: deps(),
@@ -26,8 +26,8 @@ defmodule Gollum.Mixfile do
 
   defp deps do
     [
-      {:httpoison, "~> 1.5.1"},
-      {:ex_doc, "~> 0.19", only: :dev, runtime: false},
+      {:httpoison, "~> 1.7"},
+      {:ex_doc, "~> 0.22", only: :dev, runtime: false},
     ]
   end
 
