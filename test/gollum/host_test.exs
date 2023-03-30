@@ -31,5 +31,6 @@ defmodule Gollum.HostTest do
     refute Host.match_path?("/Fish.PHP", "/fish*.php")
     refute Host.match_path?("/Fish.asp", "/fish")
     refute Host.match_path?("/catfish", "/fish*")
+    refute Host.match_path?("/fishy/", "/y/")
   end
 end
