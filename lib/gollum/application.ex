@@ -13,10 +13,8 @@ defmodule Gollum.Application do
   end
 
   def start(_type, _args) do
-    import Supervisor.Spec
-
     children = [
-      worker(Gollum.Cache, [opts()]),
+      Gollum.Cache
     ]
     opts = [strategy: :one_for_one, name: Gollum.Supervisor]
     Supervisor.start_link(children, opts)
